@@ -27,6 +27,23 @@ nav a:hover {
   border: 2px solid black;
 }
 
+/* Confirmación de borrar */
+
+.borrar {
+  border: 1px solid black;
+  border-radius: 10px;
+  text-align: center;
+  background-color: white;
+  width: 40%;
+  padding: 2%;
+  margin: auto;
+}
+
+.borrar h2 {
+  margin-bottom: 2rem;
+}
+
+
 /* Listas/Tablas */
 
 ol,
@@ -70,7 +87,7 @@ th {
 }
 
 .album {
-  width: 20%;
+  width: 25rem;
 }
 
 h1 {
@@ -102,7 +119,7 @@ input {
 }
 
 input[type="submit"],
-form a {
+form a, .borrar a {
   all: unset;
   padding: 2%;
   border: 1px solid black;
@@ -112,7 +129,7 @@ form a {
 }
 
 input[type="submit"]:hover,
-form a:hover {
+form a:hover, .borrar a:hover {
   background-color: rgb(249, 241, 255);
   cursor: pointer;
 }

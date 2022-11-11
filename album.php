@@ -29,6 +29,8 @@ require_once('includes/conexion.inc.php');
             }
         }
 
+        //Comprobaciones de los datos
+
         if (!preg_match($exprTitulo, $_POST["titulo"]) && !isset($errores["titulo"])) {
             $errores["titulo"] = '<p class="error">El titulo solo recibe de 3 a 15 letras, números y espacios.</p><br>';
         }
@@ -37,13 +39,15 @@ require_once('includes/conexion.inc.php');
             $errores["duracion"] = '<p class="error">La duración solo permite un valor entero en segundos.</p><br>';
         }
 
+        //Si no hay errores se procede a realizar la inserción o actualización de los datos
         if (!$errores) {
             $conexion = conectar();
 
+            //En caso de que se haya enviado el codigo de la canción se realizará un update, en caso contrario un insert
             if (!is_null($conexion)) {
                 if (!isset($_POST['codigo'])) {
 
-                    $consulta = $conexion->prepare('INSERT INTO canciones (titulo, album, duracion) VALUES (?, ?, ?);');
+                    $consulta = $conexion->prepare('INSERT INTO canciones (titulo, album, duracion, posicion) VALUES (?, ?, ?, 0);');
 
                     $consulta->bindParam(1, $_POST["titulo"]);
                     $consulta->bindParam(2, $_GET["album"]);
@@ -61,6 +65,7 @@ require_once('includes/conexion.inc.php');
             try {
                 $consulta->execute();
             } catch (\Throwable $th) {
+                echo $th->getMessage();
             }
 
             unset($conexion);
@@ -70,7 +75,7 @@ require_once('includes/conexion.inc.php');
     }
 
     //En caso de que se esté borrando un dato entrará aquí
-    if (isset($_GET['accion'])) {
+    if (isset($_GET['accion']) && $_GET['accion'] == 'borrar') {
         $conexion = conectar();
 
         if (!is_null($conexion)) {
@@ -93,6 +98,15 @@ require_once('includes/conexion.inc.php');
 <body>
     <?php
     include_once('includes/cabecera.inc.php');
+
+    //En caso de que se quiera borrar un album entrará en esta confirmación
+    if (isset($_GET['accion']) && $_GET['accion'] == 'confirmar') {
+
+        echo '<div class="borrar">';
+        echo '  <h2>¿Estás seguro de que quieres borrar esa canción?</h2>';
+        echo '  <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $_GET["codigo"] . '&accion=borrar">Borrar</a>';
+        echo '</div>';
+    }
     ?>
     <div class="album">
         <h1>Canciones</h1>
@@ -106,6 +120,7 @@ require_once('includes/conexion.inc.php');
             $conexion = conectar();
 
             if (!is_null($conexion)) {
+                //Generación de las celdas de la información de las canciones
                 $resultado = $conexion->query('SELECT codigo, titulo, duracion FROM canciones WHERE album=' . $_GET["album"] . ';');
 
                 while ($cancion = $resultado->fetch(PDO::FETCH_ASSOC)) {
@@ -117,7 +132,7 @@ require_once('includes/conexion.inc.php');
                             <td>' . $cancion["duracion"] . '</td>
                             <td>
                                 <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $cancion["codigo"] . '"><img src="img/editar.png" alt="' . $cancion["titulo"] . '_icono_editar"></a>
-                                <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $cancion["codigo"] . '&accion=borrar"><img src="img/borrar.png" alt="' . $cancion["titulo"] . '_icono_borrar"></a>
+                                <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $cancion["codigo"] . '&accion=confirmar"><img src="img/borrar.png" alt="' . $cancion["titulo"] . '_icono_borrar"></a>
                             </td>
                           </tr>';
                 }
@@ -130,7 +145,7 @@ require_once('includes/conexion.inc.php');
     <div>
         <?php
         $conexion = conectar();
-
+        //En caso de que se haya enviado el codigo de la canción se mostrará el formulario con los datos de la misma
         if (!is_null($conexion) && isset($_GET['codigo'])) {
             $resultado = $conexion->query('SELECT * FROM canciones WHERE codigo=' . $_GET['codigo'] . ';');
 
@@ -161,10 +176,10 @@ require_once('includes/conexion.inc.php');
 
             <?php echo isset($errores["duracion"]) ? $errores["duracion"] : "" ?>
 
-            <input type="hidden" name="codigo" value="<?= $_GET["codigo"] ?? "" ?>">
-
             <?php
+            //En caso de que se haya enviado el codigo de la canción se almacenará en un input hidden
             if (isset($_GET['codigo'])) {
+                echo '<input type="hidden" name="codigo" value="' . $_GET["codigo"] . '">';
                 echo '<input type="submit" value="Editar">';
                 echo '<a href="album.php?grupo=' . $_GET["grupo"] . "&album=" . $_GET["album"] . '">Cancelar</a>';
             } else {

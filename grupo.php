@@ -31,6 +31,8 @@ require_once('includes/conexion.inc.php');
             }
         }
 
+        //Comprobaciones de los datos
+
         if (!preg_match($exprTitulo, $_POST["titulo"]) && !isset($errores["titulo"])) {
             $errores["titulo"] = '<p class="error">El titulo solo recibe de 3 a 25 letras, números y espacios.</p><br>';
         }
@@ -51,9 +53,11 @@ require_once('includes/conexion.inc.php');
             $errores["precio"] = '<p class="error">El precio solo admite números enteros y decimales de hasta 2 decimas.</p><br>';
         }
 
+        //Si no hay errores se procede a realizar la inserción o actualización de los datos
         if (!$errores) {
             $conexion = conectar();
 
+            //En caso de que se haya enviado el codigo del álbum se realizará un update, en caso contrario un insert
             if (!is_null($conexion)) {
                 if (!isset($_POST['codigo'])) {
 
@@ -90,17 +94,19 @@ require_once('includes/conexion.inc.php');
     }
 
     //En caso de que se esté borrando un dato entrará aquí
-    if (isset($_GET['accion'])) {
+    if (isset($_GET['accion']) && $_GET['accion'] == 'borrar') {
+
         $conexion = conectar();
 
         if (!is_null($conexion)) {
             $consulta = $conexion->prepare('DELETE FROM albumes WHERE codigo=?');
 
-            $consulta->bindParam(1, $_POST["codigo"]);
+            $consulta->bindParam(1, $_GET["codigo"]);
         }
         try {
             $consulta->execute();
         } catch (\Throwable $th) {
+            echo $th;
         }
 
         unset($conexion);
@@ -113,10 +119,19 @@ require_once('includes/conexion.inc.php');
 <body>
     <?php
     include_once('includes/cabecera.inc.php');
+
+    //En caso de que se quiera borrar un album entrará en esta confirmación
+    if (isset($_GET['accion']) && $_GET['accion'] == 'confirmar') {
+        echo '<div class="borrar">';
+        echo '  <h2>¿Estás seguro de que quieres borrar este album?</h2>';
+        echo '  <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $_GET["codigo"] . '&accion=borrar">Borrar</a>';
+        echo '</div>';
+    }
     ?>
     <div class="album">
         <ul>
             <?php
+            //Generación de la lista de álbumes
             $conexion = conectar();
 
             if (!is_null($conexion)) {
@@ -126,7 +141,7 @@ require_once('includes/conexion.inc.php');
                     echo '<li>
                             <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $album["codigo"] . '">' . " " . $album["titulo"] . '</a>
                             <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $album["codigo"] . '"><img src="img/editar.png" alt="' . $album["titulo"] . '_icono_editar"></a>
-                            <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $album["codigo"] . '&accion=borrar"><img src="img/borrar.png" alt="' . $album["titulo"] . '_icono_borrar"></a>
+                            <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $album["codigo"] . '&accion=confirmar"><img src="img/borrar.png" alt="' . $album["titulo"] . '_icono_borrar"></a>
                           </li>';
                 }
             }
@@ -138,6 +153,7 @@ require_once('includes/conexion.inc.php');
     </div>
     <div>
         <?php
+        //En caso de que se haya enviado el codigo del álbum se mostrará el formulario con los datos del álbum
         $conexion = conectar();
 
         if (!is_null($conexion) && isset($_GET['codigo'])) {
@@ -171,10 +187,18 @@ require_once('includes/conexion.inc.php');
 
             <label for="formato">Formato</label><br>
             <select name="formato" id="formato">
-                <option value="cd">CD</option>
-                <option value="vinilo">Vinilo</option>
-                <option value="dvd">DVD</option>
-                <option value="mp3">MP3</option>
+                <option 
+                <?php echo (isset($_POST["formato"]) && $_POST["formato"]=="cd") ? "selected" : "" ?>
+                value="cd">CD</option>
+                <option 
+                <?php echo (isset($_POST["formato"]) && $_POST["formato"]=="vinilo") ? "selected" : "" ?>
+                value="vinilo">Vinilo</option>
+                <option 
+                <?php echo (isset($_POST["formato"]) && $_POST["formato"]=="dvd") ? "selected" : "" ?>
+                value="dvd">DVD</option>
+                <option 
+                <?php echo (isset($_POST["formato"]) && $_POST["formato"]=="mp3") ? "selected" : "" ?>
+                value="mp3">MP3</option>
             </select>
             <br><br>
 
@@ -190,10 +214,10 @@ require_once('includes/conexion.inc.php');
 
             <?php echo isset($errores["fechacompra"]) ? $errores["fechacompra"] : "" ?>
 
-            <input type="hidden" name="codigo" value="<?= $_GET["codigo"] ?? "" ?>">
-
             <?php
             if (isset($_GET['codigo'])) {
+                //En caso de que se haya enviado el codigo del álbum se almacenará en un input hidden
+                echo '<input type="hidden" name="codigo" value="' . $_GET["codigo"] . '">';
                 echo '<input type="submit" value="Editar">';
                 echo '<a href="grupo.php?grupo=' . $_GET["grupo"] . '">Cancelar</a>';
             } else {
