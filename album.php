@@ -108,40 +108,47 @@ require_once('includes/conexion.inc.php');
         echo '</div>';
     }
     ?>
-    <div class="album">
-        <h1>Canciones</h1>
-        <table>
-            <tr>
-                <th>Título</th>
-                <th>Duración</th>
-                <th>Opciones</th>
-            </tr>
             <?php
             $conexion = conectar();
 
             if (!is_null($conexion)) {
                 //Generación de las celdas de la información de las canciones
                 $resultado = $conexion->query('SELECT codigo, titulo, duracion FROM canciones WHERE album=' . $_GET["album"] . ';');
+                if ($resultado->rowCount()) {
+                    echo '<div class="canciones">
+                    <h1>Canciones</h1>
+                    <table>
+                        <tr>
+                            <th>Título</th>
+                            <th>Duración</th>
+                            <th>Opciones</th>
+                        </tr>';
 
-                while ($cancion = $resultado->fetch(PDO::FETCH_ASSOC)) {
-                    $minutos = floor($cancion["duracion"] / 60);
-                    $segundos = $cancion["duracion"] - ($minutos * 60);
-                    $cancion["duracion"] = $minutos . ":" . $segundos;
-                    echo '<tr>
-                            <td>' . $cancion["titulo"] . '</td>
-                            <td>' . $cancion["duracion"] . '</td>
-                            <td>
-                                <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $cancion["codigo"] . '"><img src="img/editar.png" alt="' . $cancion["titulo"] . '_icono_editar"></a>
-                                <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $cancion["codigo"] . '&accion=confirmar"><img src="img/borrar.png" alt="' . $cancion["titulo"] . '_icono_borrar"></a>
-                            </td>
-                          </tr>';
+                        while ($cancion = $resultado->fetch(PDO::FETCH_ASSOC)) {
+                            //Se calculan los minutos y los segundos de la canción
+                            $minutos = floor($cancion["duracion"] / 60);
+                            $segundos = $cancion["duracion"] - ($minutos * 60);
+                            $segundos = preg_match('/^\d{1}$/', $segundos) ? "0".$segundos : $segundos;
+                            $cancion["duracion"] = $minutos . ":" . $segundos;
+
+                            //Se muestra la información de la canción
+                            echo '<tr>
+                                    <td>' . $cancion["titulo"] . '</td>
+                                    <td>' . $cancion["duracion"] . '</td>
+                                    <td>
+                                        <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $cancion["codigo"] . '"><img src="img/editar.png" alt="' . $cancion["titulo"] . '_icono_editar"></a>
+                                        <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $_GET["album"] . '&codigo=' . $cancion["codigo"] . '&accion=confirmar"><img src="img/borrar.png" alt="' . $cancion["titulo"] . '_icono_borrar"></a>
+                                    </td>
+                                  </tr>';
+                        }
+                    echo '  </table>';
+                    echo '</div>';
                 }
+
             }
             unset($resultado);
             unset($conexion);
             ?>
-        </table>
-    </div>
     <div>
         <?php
         $conexion = conectar();

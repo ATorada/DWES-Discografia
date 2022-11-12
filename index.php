@@ -122,28 +122,33 @@ require_once('includes/conexion.inc.php');
         echo '</div>';
     }
     ?>
-    <div class="grupos">
-        <ol>
+
+
             <?php
             //Generación de la lista de grupos
             $conexion = conectar();
 
             if (!is_null($conexion)) {
                 $resultado = $conexion->query('SELECT codigo, nombre FROM grupos;');
-
-                while ($grupo = $resultado->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<li>
-                            <a href="grupo.php?grupo=' . $grupo["codigo"] . '">' . " " . $grupo["nombre"] . '</a>
-                            <a href="index.php?codigo=' . $grupo["codigo"] . '"><img src="img/editar.png" alt="' . $grupo["nombre"] . '_icono_editar"></a>
-                            <a href="index.php?codigo=' . $grupo["codigo"] . '&accion=confirmar""><img src="img/borrar.png" alt="' . $grupo["nombre"] . '_icono_borrar"></a>
-                        </li>';
+                if ($resultado->rowCount()) {
+                    echo '<div class="grupos">';
+                    echo '  <ol>';
+                    while ($grupo = $resultado->fetch(PDO::FETCH_ASSOC)) {
+                        echo '<li>
+                                <a href="grupo.php?grupo=' . $grupo["codigo"] . '">' . " " . $grupo["nombre"] . '</a>
+                                <a href="index.php?codigo=' . $grupo["codigo"] . '"><img src="img/editar.png" alt="' . $grupo["nombre"] . '_icono_editar"></a>
+                                <a href="index.php?codigo=' . $grupo["codigo"] . '&accion=confirmar""><img src="img/borrar.png" alt="' . $grupo["nombre"] . '_icono_borrar"></a>
+                            </li>';
+                    }
+                    echo '  </ol>';
+                    echo '</div>';
                 }
+
             }
             unset($resultado);
             unset($conexion);
             ?>
-        </ol>
-    </div>
+
     <div>
         <?php
         //En caso de que se haya enviado el codigo del grupo se mostrará el formulario con los datos del grupo

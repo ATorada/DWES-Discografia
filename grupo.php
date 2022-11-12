@@ -128,29 +128,32 @@ require_once('includes/conexion.inc.php');
         echo '</div>';
     }
     ?>
-    <div class="album">
-        <ul>
+
             <?php
             //Generación de la lista de álbumes
             $conexion = conectar();
 
             if (!is_null($conexion)) {
                 $resultado = $conexion->query('SELECT codigo, titulo FROM albumes WHERE grupo=' . $_GET["grupo"] . ';');
-
-                while ($album = $resultado->fetch(PDO::FETCH_ASSOC)) {
-                    echo '<li>
-                            <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $album["codigo"] . '">' . " " . $album["titulo"] . '</a>
-                            <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $album["codigo"] . '"><img src="img/editar.png" alt="' . $album["titulo"] . '_icono_editar"></a>
-                            <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $album["codigo"] . '&accion=confirmar"><img src="img/borrar.png" alt="' . $album["titulo"] . '_icono_borrar"></a>
-                          </li>';
+                if ($resultado->rowCount()) {
+                    echo '<div class="album">';
+                    echo '  <ul>';
+                    while ($album = $resultado->fetch(PDO::FETCH_ASSOC)) {
+                        echo '<li>
+                                <a href="album.php?grupo=' . $_GET["grupo"] . '&album=' . $album["codigo"] . '">' . " " . $album["titulo"] . '</a>
+                                <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $album["codigo"] . '"><img src="img/editar.png" alt="' . $album["titulo"] . '_icono_editar"></a>
+                                <a href="grupo.php?grupo=' . $_GET["grupo"] . '&codigo=' . $album["codigo"] . '&accion=confirmar"><img src="img/borrar.png" alt="' . $album["titulo"] . '_icono_borrar"></a>
+                            </li>';
+                    }
+                    echo '  </ul>';
+                    echo '</div>';
                 }
             }
 
             unset($resultado);
             unset($conexion);
+
             ?>
-        </ul>
-    </div>
     <div>
         <?php
         //En caso de que se haya enviado el codigo del álbum se mostrará el formulario con los datos del álbum
